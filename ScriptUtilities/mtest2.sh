@@ -1,0 +1,7 @@
+#!/bin/bash
+# sending multiple commands to MySQL
+MYSQL=$(which mysql)
+$MYSQL mytest -u test <<EOF
+show tables;
+select * from employees where salary > 40000;
+EOF

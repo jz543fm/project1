@@ -1,0 +1,26 @@
+Top Ten Disk Space Usage
+for  /var/log /home Directories
+
+The /var/log Directory:
+1:	2613576	/var/log/journal/1dcfc537a43046bca87101ab3e9a3b0d
+2:	29636	/var/log
+3:	1004	/var/log/installer
+4:	364	/var/log/apt
+5:	172	/var/log/unattended-upgrades
+6:	84	/var/log/apache2
+7:	64	/var/log/cups
+8:	32	/var/log/mysql
+9:	8	/var/log/dbconfig-common
+10:	4	/var/log/speech-dispatcher
+
+The /home Directory:
+1:	836632	/home/zittnansky/Hudba/DNB
+2:	370036	/home/zittnansky/.cache/chromium/Default/Cache
+3:	358036	/home/zittnansky/Hudba/DNB
+4:	333748	/home/zittnansky/Hudba/DNB
+5:	299120	/home/zittnansky/Hudba/DNB
+6:	266656	/home/zittnansky/Plocha/Rhymes
+7:	214524	/home/zittnansky/.cache/mozilla/firefox/g6c4iz77.default/cache2/entries
+8:	209992	/home/zittnansky/Plocha/Rhymes/Myslíme
+9:	175264	/home/zittnansky/Hudba/DNB
+10:	164852	/home/zittnansky/Hudba/DNB

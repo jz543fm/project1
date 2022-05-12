@@ -1,0 +1,361 @@
+Obtaining the required functions: 
+
+Deleting an account is the more complicated accounts management task. When 
+deleting an account, at least four separate actions are required:
+
+	1.) Obtaint correct user account name to delete.
+	2.) Kill any processes currently running on the system that belongs to
+	    that account.
+	3.) Determine all files on the system belonging to the account
+	4.) Remove the user account. 
+
+
+	
+	Getting the correct accout name: 
+
+1st Step in the account deletion process is the most important: obtaining the 
+the correct user account name to delete. Because this is an interactive script,
+you can use the read command to obtain the account name. If the script user
+walks away and leaves the question hanging, you can use -t option on the read
+command and timeout after giving the script user 60 seconds to answer the 
+question:
+
+echo "Please enter the username of the user "
+echo -e "account you wish to delete from system: \c"
+read -t 60 ANSWER
+
+Because interruptions are part of life, it's best to give users three chances
+to answer the question. This is accomplished by using a while loop w/ the -z 
+option, to test whether the ANSWER var is empty. The ANSWER var is empty when 
+the script first enters the while loop on purpose. The question to fill the 
+ANSWER var is at the end of the loop: 
+
+while [ -z "$ANSWER" ]
+do
+[...]
+echo "Please enter the username of the user "
+echo -e "account you wish to delete from system: \c"
+read -t 60 ANSWER
+done
+
+A way to communicate with the script user is needed when the 1st quiestion 
+timeout occurs, when there is one more chance to answer the question and so on.
+The case statement is the structured command that works perfectly here. Using
+the incremented ASK_COUNT var, different messages can be set up to communicate to the script user. The code for this selection looks like this: 
+
+case $ASK_COUNT in
+2)
+	echo
+	echo "Please answer the question."
+	echo
+;;
+3)
+	echo
+	echo "One last try...please answer the question."
+	echo
+;;
+4)
+	echo
+	echo "Since you refuse to answer the question..."
+	echo "exiting program."
+	echo
+	#
+	exit
+;;
+esac
+#
+
+Now the script has all the structure it needs to ask the user what account to
+delete.
+
+
+	Creating a function to get the correct account name
+
+The first thing you need to do is declare the function's name, get_answer. Next,
+clear out any previous answers to questions your script user gave, using the 
+unset command. 
+
+function get_answer {
+#
+unset ANSWER
+
+The other original code idem you need to change is the question to the script 
+user. The script does not ask the same question each time, so two new vars are
+created, LINE1 and  LINE2, to handle question lines:
+
+echo $LINE1
+echo -e $LINE2" \c"
+
+However, not every question has 2 lines to display. Some have only one line. 
+An if statement assists with this problem. The function tests if LINE2 is empty
+and only uses LINE1 if it is: 
+
+if [ -n "$LINE2" ]
+then
+	echo $LINE1
+	echo -e $LINE2" \c"
+else
+	echo -e $LINE1" \c"
+fi	
+
+Finally, the function needs to clean up after itself by clearing out the LINE1
+and LINE2 vars. Thus, the function now looks like this: 
+
+function get_answer {
+#
+unset ANSWER
+ASK_COUNT=0
+#
+while [ -z "$ANSWER" ]
+do
+	ASK_COUNT=$[ $ASK_COUNT + 1 ]
+#
+	case $ASK_COUNT in
+	2)
+		echo
+[...]
+	esac
+#
+	echo
+	if [ -n "$LINE2" ]
+	then		#Print 2 lines
+		echo $LINE1
+		echo -e $LINE2" \c"
+	else		#Print 1 line
+		echo -e $LINE1" \c"
+	fi
+#
+	read -t 60 ANSWER
+done
+#
+unset LINE1
+unset LINE2
+#
+} #End of get_answer function
+
+To ask the script user what account to delete, a few variables must be set and
+the get answer function should be called. Using the new function makes the 
+script code much simpler: 
+
+LINE1="Please enter the username of the user "
+LINE2="account you wish to delete from system:"
+get_answer
+USER_ACCOUNT=$ANSWER
+
+
+	Verifying the entered account name
+
+Because of potential typographical errors, the user account name that was 
+entered should be verified. This is easy because the code is already in place tohandle asking a question: 
+
+LINE1="Is $USER_ACCOUNT the user account "
+LINE2="you wish to delete from the system? [y/n]"
+get_answer
+
+After the question is asked the script must process the answer. The var ANSWER
+again carries the script user's answer to the question. If the user answered 
+"yes" the correct user account to delete has been entered and the script can 
+continue. A case statement processes the answer. The case statement must be 
+coded so it checks for the multiple ways the answer "yes" can be entered: 
+
+case $ANSWER in
+y|Y|YES|yes|Yes|yEs|yeS|YEs|yES )
+#
+;;
+*)
+	echo
+	echo "Because the account, $USER_ACCOUNT, is not "
+	echo "the one you wish to delete, we are leaving the script..."
+	echo
+	exit
+;;
+esac
+
+Sometimes, this script needs to handle a yes/no answer from the user.
+Thus, again, it makes sense to create a function to handle this task. Only a 
+few changes need to be made to the preceding code. The function's name must be 
+declared and the vars EXIT_LINE1 and EXIT_LINE2 added to the case statement.
+These changes, along with some variable cleanup at the end, result in the 
+process_answer function: 
+
+function process_answer {
+#
+case $ANSWER in
+y|Y|YES|yes|Yes|yEs|yeS|YEs|yES )
+;;
+*)
+	echo
+	echo $EXIT_LINE1
+	echo $EXIT_LINE2
+	echo	
+	exit
+;;
+esac
+#
+unset EXIT_LINE1
+unset EXIT_LINE2
+#
+} #End of process_answer function
+
+A simple function call now processes the answer:
+
+EXIT_LINE1="Because the account, $USER_ACCOUNT, is not "
+EXIT_LINE2="the one you wish to delete, we are leaving the script..."
+process_answer
+
+
+	Removing any account processes
+
+In order to remove the user accout from the system, the accout can't own any
+processes currently running. Thus, the next step is to find and kill off those
+processes. Finding the user processes is the easy part.  ps -u command to locate
+any running processes owned by the account. By redirecting the output to 
+/dev/null, the user doesn't see any display. 
+
+case $? in
+1)
+# No processes running for this User Account
+	#
+	echo "There are no processes for this account currently running."
+	echo
+;;
+0)	# Processes running for this User Account.
+	# Ask Script User if wants us to kill the processes.
+	#
+	echo "$USER_ACCOUNT has the following processes running: "
+	echo
+	ps -u $USER_ACCOUNT
+	#
+	LINE1="Would you like me to kill the process(es)? [y/n]"
+	get_answer
+	#
+[...]
+esac
+
+If the ps, command's exit status returns as 1, there are no processes running onthe system that belong to the user account. However, if the exit status returns
+as 0, processes owned by this account are running on the system. In this case,
+the script needs to ask the script user if he would like to have these processes
+killed. This task can be accomplished by using the get_answer function. 
+
+Another case statement must be embedded to process the script user's answer.
+The first part of the case statement looks very similar to the process_answer 
+function:
+
+case $ANSWER in
+y|Y|YES|yes|Yes|yEs|yeS|YEs|yES ) # If user answers "yes",
+				#kill User Account processes.
+[...]
+;;
+*)			# If user answers anything but "yes", do not kill.
+	echo
+	echo "Will not kill the process(es)"
+	echo
+;;
+esac
+
+If == yesl, the user account processed need to be killed. To build the command
+neccessary to kill off one or more processes, three commands are needed. The
+first command is the ps command again, there are needed PIDs of the currently
+running user account processes. The neccessary ps command is assigned to the 
+var, COMMAND_1:
+
+COMMAND_1="ps -u $USER_ACCOUNT --no-heading"
+
+The second command strips off just the PIDs.
+
+gawk '{print $1}'
+
+The third command, xargs, builds and executes commands from STDIN, it is a great
+command to use at the end of a pipe, building and executin commands from each 
+STDIN item produced. The xargs command is actually killing off each process via
+its PID:
+
+COMMAND_3="xargs -d \\n /usr/bin/sudo /bin/kill -9"
+
+The xargs command is assigned to var COMMAND_3. It uses -d option to denote what
+is considered a delimiter. In other words, because the xargs command can accept
+multiple items as input, what separates one item from another item? In this case, \n is used to set the delimiter. The xargs command is beign assigned to a var
+the \ in the \n must be escaped with an additional \. 
+
+Notice that xargs need the fill pathname of the commands it is using on each 
+PID. Both sudo and kill commands are used to kill any of the user account's 
+running processes. Notice also that kill signal -9 is used.
+
+All 3 commands are hooked together via pipe. The ps command produces a list of
+the user's running processes, which include the PID of each process. The ps 
+command passes its STDOUT as STDIN to the gawk command. The gawk command, in 
+turn, strips off only the PIDs from the ps command's STDOUT. The xargs command
+takes each PID the gawk command produces as STDIN. It creates and executes a
+kill command for each PID to kill all the user's running processes. The command
+pipe looks like this: 
+
+$COMMAND_1 | gawk '{print $1}' | $COMMAND_3
+
+Thus, the complete case statement for killing off any of the user account's 
+running processes is as follows: 
+
+case $ANSWER in
+y|Y|YES|yes|Yes|yEs|yeS|YEs|yES ) # If user answers "yes",
+					#kill User Account processes.
+	echo
+	echo "Killing off process(es)..."
+	#
+	# List user processes running code in variable, COMMAND_1
+	COMMAND_1="ps -u $USER_ACCOUNT --no-heading"
+	#
+	# Create command to kill proccess in variable, COMMAND_3
+	COMMAND_3="xargs -d \\n /usr/bin/sudo /bin/kill -9"
+	#
+	# Kill processes via piping commands together
+	$COMMAND_1 | gawk '{print $1}' | $COMMAND_3
+	#
+	echo
+	echo "Process(es) killed."
+;;
+
+
+	Finding accout files:
+
+When a user accout is deleted from the system, it is a good practice to archive
+all the files that belongs to that account. Along with that practice, it is 
+also important to remove the files or assign their ownership to another 
+account. If the account you delete has a USER ID of 1003 and you don't remove
+or reassign those files, then the next account that is created with a User ID
+if 1003 owns those files! -> SECURITY DISASTER
+
+The Delete_User.sh script does not do all that for you, but it creates a 
+report that can be used in the Daily_Archive.sh script as an archive config 
+file. And you can use the report to help you remove or reassign the files. 
+
+To find the user's files, you can use the find command. In this case, the find
+command searches the entire filesystem with the -u option, which pinpoints any
+user account-owned files. The command looks like the following: 
+
+find / -user $USER_ACCOUNT > $REPORT_FILE
+
+	
+	Removing the account: 
+
+It's always a good idea to be a little paranoid about removin a user account
+from the system. Therefore, you should ask one more time if the script user 
+really wants to remove the account.
+
+LINE1="Remove $User_Account's account from system? [y/n]"
+get_answer
+#
+EXIT_LINE1="Since you do not wish to remove the user account,"
+EXIT_LINE2="$USER_ACCOUNT at this time, exiting the script..."
+process_answer
+
+Finally, we get to the main purpose of our script, actually removing the user 
+account from the system. Here the userdel command is used: 
+
+userdel $USER_ACCOUNT
+
+
+# For testing: sudo useradd Consultant
+# sudo ./Delete_User.sh
+# ls Consultant*.rpt
+# cat Consultant_Files_*****.rpt
+# grep Consultant /etc/passwd
+#

@@ -1,0 +1,2034 @@
+////////////////////////////////////////////////////////////////////////////
+			The Linux Command Line 
+///////////////////////////////////////////////////////////////////////////
+
+-> Version: 5th Internet version
+
+-> Current: 19.01
+ 
+-> Autor:   Juraj Žittňanský
+
+-> Credit:  I do not give a f***.
+
+:>:>:>:>:>:>:>:>:>:>:>:>:>:>:>:>:>:>:>:>:>:>:>:>:>:>:>:>:>:>:>:>:>:>:>:>:>:>:
+
+
+
+
+
+
+				Here we go:
+
+
+
+
+
+
+:>:>:>:>:>:>:>:>:>:>:>:>:>:>:>:>:>:>:>:>:>:>:>:>:>:>:>:>:>:>:>:>:>:>:>:>::>:>:
+
+Command: ECHO 
+//Creating a Dir photos where we need Year - Month
+
+$ mkdir Photos && cd Photos 
+$ mkdir {2007..2019}-{01..12}
+$ ls
+
+//Check user of the system
+
+$ echo $USER
+
+//Check available variables 
+
+$ printenv | less
+
+How a process work? 
+-> Keď sa systém naštartuje kernel iniciuje
+   pár z jeho aktivít (ako procesy) a spustí
+   program init.
+
+INIT -> zapína, spúšťa sériu shell skriptov
+        ktoré sú uložené v /etc, nazvané init scripty
+	ktoré, spúšťajú systémové služby. Väčšina týchto
+	služieb, sú implementované ako deamon programy,
+	ktoré sedia v "pozadí" a robia si ich veci bez
+	potreby User Interface. 
+
+     -> Kernel riadi informácie ohľadne každého procesu 
+	na pomoc toho, aby boli veci organizované. 
+	Každý proces má priradené číslo nazvané PID.
+	PID sú priradené vo vzostupnom poradí, s INIT-om
+	obyčajne dostáva číslo 1. Kernel samozrejme 
+	sleduje pamäť priradenú každému procesu.
+
+$ ps -x 
+
+- Zobrazí všetky procesy bez ohľadu na to či sú kontrolovaé terminálom, 
+  je to užitočné to pipedownuť s less
+
+$ top 
+
+- Zobrazovanie procesov dynamicky s top, program top updatuje tabuľku procesov 
+  každé 3s na systéme kde je zobrazená aktivita procesov. Zobrazenie top pozostáva z 2ch častí:
+
+1.) System summary na top riadkoch, nasledovaný tabuľkou procesov sortovanou podľa CPU aktivity.
+
+$ xlogo
+
+- Zobrazí nám logo x, ako dáme proces z "foreground" -> "backgoung" ?
+
+$ xlogo &
+
+- Ampersand dáva process do pozadia, a zobrazí nám [1] a PID
+- To nám hovorí, že sme začali job s číslom 1 a nejaké PID
+- PS v "backgroung" je imnunný voči keyboard vstupu
+
+$ fg %1
+
+- Ako dostať proces do "foreground" ? Pomocou fg kde %1 je 
+  číslo v poradí job :-) 
+
+Posúvaním programu z "background-u" do "foregroundu" je super 
+ak chceme spustiť grafický program.
+Pretože dokážeme vidieť chyby a veci, ktoré sú v podstate neviditeľné,
+ak by bol program spustený graficky. Niekedy sa stane že program "padne" 
+keď je spustený z grafického menu. Keď to pustíme cez terminál dokážeme odhaliť chyby problému. 
+
+$ kill
+
+- Command kill "nekilluje" procesy, posiela im SIGNALS, signály 
+  sú jedným z niekoľkých systémových možností ako komunikovať s programom. 
+- Ak terminál dostane CTRL-C alebo CTRL-Z pošle to signál programu do foregroundu. 
+- CTRL-C pošle INT (interrupt) programu do foregroundu.
+- CTRL-Z pošle TSTP (Terminal Stop) 
+
+$ kill -l
+
+- Zobrazí celkový zoznam signálov.
+
+$ killall
+
+- Zabitie všetkých procesov 
+
+Napríklad vytvoríme 2x proces xlogo
+
+$ xlogo &
+$ xlogo &
+$ killall xlogo
+
+------------------------------------
+
+$ pstree 
+
+- Zobrazí process list podobajúci sa "tree patternu", ktorý ukazuje parent/child spojenia medzi procesmi.
+
+////////////////////////////////////////////
+		 ENVIROMENT
+////////////////////////////////////////////
+
+$ printenv 
+
+- Zobrazí časti celého prostredia
+
+$ printenv USER
+
+- Zobrazí usera
+
+$ set | less
+
+- Zobrazí shell a enviroment variables
+
+Ako je nadviazané Enviroment? 
+
+-> Keď sa prihlásime na systém, bash program sa spustí a číta 
+   sériu konfiguračných skriptov -> "startup files", ktoré 
+   definujú default env. pre všetkých používateľov. 
+
+Sú dva druhy: Login Shell Session x Non-login Shell Session
+
+STARTUP FILES for LOGIN SHELL SESSION 
+
+/etc/profile -> Globálny conf. script aplikovaný na všetkých používateľov 
+
+~/.bash_profile -> User personal startup file
+
+~/.bash_login -> Ak nie je nájdený bash profile, bash sa snaží prečítať script
+
+~/.profile -> Ak nie je nájdený buď _profile alebo _login, bash sa snaží 
+   prečítať tento súbor, to je defaultne nastavené na debian-based distribúciách ako Ubuntu. 
+
+NON-LOGIN SHELL SESSION READ THE FOLLOWING STARTUP FILES: 
+
+/etc/bash.bashrc -> Global conf. script, ktorý je aplikovaný na všetkých používateľév
+
+~/.bashrc -> User personal startup file.
+
+$ fsck 
+
+- Filesystem check if files're corupted
+
+--------------------------------------------
+		EXTRA CREDIT
+--------------------------------------------
+- Sometimes it's often useful to verify the integrity
+- of an ISO image. Tru -> chechsum file <-
+
+Checksum - result of an exotic math calculation resulting
+	   in a number that represents the the content of 
+	   target file. If the contents of the file change
+	   by even one bit, the resulting checksum'll be
+	   different. 
+	
+	 - md5sum program procudes a unique hexadec. number
+
+//////////////////////////////////////////////////////////
+		      NETWORKING
+//////////////////////////////////////////////////////////
+
+$ ping 
+
+- Posiela ICMP ECHO_REQUEST sieťovým hosťom
+
+$ netstat
+
+- Zobrazí sieťové spojenia, routing tables, interface statictics,
+  masquarade connections, multicast membership.
+
+$ traceroute
+
+- Zobrazí sieťové pakety smerujúce ku hosťovi
+
+$ ftp 
+
+- Nevyjadrujem sa 
+
+$ wget 
+
+- Non-interactive network downloader
+
+$ ssh 
+
+- OpenSSH SSH client (remote login program) 
+
+///////////////////////////////////////////////////////
+		SEARCHIN FOR FILES
+///////////////////////////////////////////////////////
+
+$ locate 
+
+- Najde subory podľa mena
+
+$ find 
+
+- Hlada pre subory in directory hierarchy
+
+$ xargs 
+
+- Buildne a vykona command lines z stdio
+
+$ touch 
+
+- Change file times
+
+$ stat
+
+- Zobrazi file x file system status
+
+$ locate 
+
+- Locate program vykonáva rapídne databázové hľadanie cesty
+  a potom vypisuje každé meno ktoré sa zhoduje s daným 
+  substringom
+
+- Locate DB je vytvorená iným programom -> updatedb, beži to
+  periodicky ako cron job (úloha vykonávaná v regulárnych intervaloch
+  s cron damonmi). Väčšina systémov vybavená s locate uskutočňuje 
+  updatedb raz do dňa. 
+
+//////////////////////////////////////////////////////////
+		ARCHIVING AND BACKUPING
+//////////////////////////////////////////////////////////
+
+Compressing: 
+
+$ gzip 
+
+- Kompresia alebo expandovanie súborov
+
+$ bzip2
+
+- A block sorting file compressor
+
+Archiving:
+
+$ tar 
+
+- Tape archiving utility
+
+$ zip
+
+- Package and compress file
+
+Synchonization
+
+$ rsync 
+
+- Remote file and dir synchro.
+
+//////////////////////////////////////////////////////////	         	TEXT PROCESSING
+//////////////////////////////////////////////////////////
+
+$ cat
+
+- Concatenate files and print of the stdout
+
+$ sort 
+
+- Sortuje riadky z textového súboru
+
+$ uniq
+
+- Reportuje alebo omituje opakované riadky
+
+$ cut
+
+- Vymazáva sekciu z každého riadka súboru
+
+$ paste
+
+- Spája riadky súboru
+
+$ join
+
+- Joinuje riadky z dvoch na všeobecnom poli
+
+$ comm 
+
+- Porovnáva 2 sortované súbory, riadok za riadkom
+
+$ patch 
+
+- Aplikuje a diffuje súbor ku originálu
+
+$ tr
+
+- Prekladá alebo vymazáva znaky
+
+$ sed 
+
+- Stream editor pre filtrovanie a transformovanie textu
+
+$ aspell 
+
+- Internative spell checker
+
+$ cat > foo.txt
+
+- Zapisujeme cez > nejaký text
+  napríklad tabulator a nejaky text
+
+$ cat -A foo.txt
+
+- ^I je tabulátor, $ je koniec alebo EOF
+
+$ sort 
+
+- Program sort sortuje obsah zo stdio, jedného alebo viac
+  súborov, špecifikovaných podľa CLI a psoiela výsledok do
+  stdout. 
+
+$ uniq
+
+- S porovnaním so sort, uniq program je lightweight, uniq
+  vykonáva viditeľne triviálne úlohy. Ale uniq odstraňuje
+  duplikáty.
+
+-> SLICING AND DICING <-
+
+$ cut
+
+- Cut program je používany na extrakciu sekcie z textu alebo
+  riadku a výstupom je extrakcia sekcie na stdout. Akceptuje
+  to viacero file argumentov alebo vstupov z stdio.
+
+$ paste
+
+- Opozitum príkazu cut. Radšej ako extrakcia stĺpcu textu 
+  zo súboru, pridáva to jeden alebo viac stĺpcov textu do 
+  súboru. Robí to čítaním viacerých riadkov a kombinovaním 
+  polí, ktoré nájde v každom súbote v single streame na 
+  stdout. Ako cut, paste akceptuje viacero file argumentov
+  and/or stdin. 
+
+$ join
+
+- V niektorých spôsoboch je join niečo ako pase, ale pridáva 
+  stĺpec k súboru, ale na to používa jedinečný spôsob. Join
+  je operácia všeobecne spojená s relačnými databázami kde 
+  dáta z viacerých tabuliek s poľom zdieľaného kľúča sú 
+  skombinované do formy určitého výsledku. 
+
+- Program join vykonáva rovnaké operácie. Spája dáta z
+  viacerých súborov na základe poľa zdieľaného kľúča. 
+
+$ comm
+
+- Program comm poronáva dva textové súbory a zobrazuje riadky
+  ktoré sú jedinečné pre každý jeden a pre riadky vo všeobec.
+
+$ diff
+
+- Program diff sa používa na detekovanie rozdielov medzi súbormi.
+
+- Diff je viac komplexnejší nástroj, podporujúci veľa 
+  výstupných formátov a schopnosť na spracovanie kolekcií 
+  textových súborov. Diff je často používaný SW developermi
+  na porovnanie zmien medzi rozličnými verziami programu a 
+  jeho zdrojového kódu a preto má schopnosť rekurzívne 
+  porovnávať dirs(y) zdrojového kódu, často označované ako
+  source trees. Jedno všeobecné použitie pre diff je
+  vytvorenie diff files alebo patchov, ktoré sú použivané
+  programami ako patch na konverziu jednej verzie súboru
+  (súborov) na ďalšiu verziu. 
+
+$ patch 
+
+- Patch program je používaný na aplikovanie zmien na textovom
+  súbore. Akceptuje to vstup z diffu a je všeobecne používaný
+  na konverziu staršej verzie súborov na novšiu verziu súborov.
+
+$ tr
+
+- Tr program sa používa na transiteráciu znakov. 
+- Je to sort of character-based search-and-replace operácia.
+- Transiterácia je proces výmeny znakov z jednej abecedy do druhej.
+- Znaky môžu byť vyjadrené:
+- 1.) Enumerated list A - Z 
+- 2.) Char. range A-Z
+- 3.) POSIX char. classes
+
+$ sed
+
+- Program sed je skratka pre stream editor.
+
+- Vykonáva to text editing na streame textu, buď na zozname
+  špecifických súborov alebo na stdio. 
+
+- Sed funguje tak, že je buď daná single editing command 
+  alebo meno scriptového súboru obsahuje viacero príkazov,
+  a tie potom vykonáva na každom riadku streamu textu.
+
+- Príkazy v sede začínajú so single letter, substitučný príkaz
+  je reprezentovaný písmenom s a je nasledovaný search-&-replace
+  reťazcami, oddelovaný / charakterom ako delimiter. Sed bude
+  akceptovať akýkoľvek znak, ktorý je okamžite nasledovaný 
+  príkazom ako delimiter. 
+
+- Sed je veľmi schopný program, schopný vykonať férové komplexné
+  editovacie úlohy na streamy textu. Je častejšie používaný pre 
+  jendoduché, one-line úlohy ako dlhšie scripty. 
+
+$ perl
+
+- Program perl je často používaný na shell scripty pre veľa
+  system-managment a administračné úlohy, alebo web development.
+
+$ awk
+
+- Menej špeciliazované. Jeho špecifická sila je schopnosť s
+  s manipuláciou tabuľkových dát. Podobá sa to na sed v tom, 
+  že awk programy normálne spracujú textové súbory line-by-line
+  použitím schémy podobnej sed koceptu na adrese, nasledovanej
+  akciou. 
+
+$ aspell
+
+- Interaktívny spelling checker. Program aspell je väčšinou
+  používaný ostatnými programami, ktoré vyžadujú spell-checking
+  vlastnosť, môže to byť tiež použité veľmi efektívne ako stand-
+  alone tool z CLI. Má to vlastnosť inteligentne overovať
+  rôzne typy textových súborov, HTML docs, C/C++ programy, 
+  emailové správy a ďalšie druhy špecializovaného textu. 
+
+//////////////////////////////////////////////////////////////
+        		FORMATTING OUTPUT
+/////////////////////////////////////////////////////////////
+
+$ nl
+
+- Number lines
+
+$ fold
+
+- Wrap each line to a specified lenght
+
+$ fmt
+
+- Simple text formatter
+
+$ pr
+
+- Prepare text for printing
+
+$ printf 
+
+- Format & print data
+
+$ groff
+
+- Document formatting system
+
+////////////////////////////////
+
+$ nl 
+
+- Program zastupuje cat -n, ale na rozdiel nl dokáže akceptovať
+  buď viacero súborov ako CLI argumenty, alebo stdio. Avšak
+  nl má veľké číslo možnosťí a podporuje primnitívne formy z
+  markupu na povolenie viac komplexnejších druhov číslovania.
+ 
+- nl podporuje koncept nazvaný "logical pages" keď číslujeme. 
+  To umožňuje nl resetovať číselnú sekvenciu keď číslujeme. 
+  Použitím možností je možné nastaviť štartovacie číslo na 
+  špecifickú hodnotu a na limitovaný rozsah, jeho formát. Logical
+  page sú rozbité do header, body a footer. 
+
+$ fold 
+
+- Folding je proces rozbíjania riadkov textu na špecifickú širku.
+ 
+$ fmt
+
+- FMT program tiež foluje text, ale plus robí ďalšie veci.
+  Akceptuje to buď súbory alebo stdio a vykonáva paragrafové
+  formátovanie na textovom streame. Napĺňa to a joinuje riadky
+  v texte pokiaľ zachováva prázdne miesta a riadkovanie.
+
+$ pr
+
+- Program pr je používaný na stránkovanie textu. Keď sa tlačí
+  text je to často žiadúce oddeliť stránky z výstupu s niekoľkými
+  whitespace-u na poskytnutie TOP & BOTTOM marginu pre každú
+  stránku. Tento whitespace môže byť použitý na vloženie header 
+  a footer na jednu stránku. 
+
+$ printf 
+
+- Formátovanie a printing dát. Printf command sa napoužíva pre 
+  pipeliny (neakceptuje to stdio) alebo to nenájde frekventne 
+  aplikácie priamo na CLI. Print Formatted bolo originálne
+  vyvinuté pre C programovací jazyk a bolo to implementované 
+  vo veľa programovacích jazykoch zahrňujúc shell, vo fakte,
+  bash, printf je builtin. 
+
+-> $ print "format" args
+
+//////////////////////////////////////////////////////////////
+			PRINTING
+//////////////////////////////////////////////////////////////
+
+$ pr
+
+- Konvertuje textové súbory pre tlačenie 
+
+$ lpr
+
+- Print files
+
+$ a2ps
+
+- Formátuje súbory pre tlačnie na PostScript tlačiarni
+
+$ lpstat
+
+- Zobrazí info o tlačiarni 
+
+$ lpq
+
+- Zobrazí queue status tlačiarne
+
+$ lprm
+
+- Cancelne print jobs
+
+>>>>>>> PRINTING WITH LINUX <<<<<<<<
+
+- Moderné linuxové systémy zamestávajú 2 software suites na 
+  vykonávanie a manažovanie tlačenia. 
+
+- CUPS (Common Unix Printing System) poskytuje tlačové drivery
+  a print-job manažment, Ghostscript, PostScript interpreter, 
+  správajúci sa ako RIP (Raste-Image-Processor) 
+
+- CUPS manažuje tlačiarne od vytvorenia až po ovládanie tlačového
+  poradia. Tlačenie v UNIXE bolo originálne vytvorené na 
+  manažovanie centralizovanej tlačiarne, zdieľanej viacerými
+  uživateľmi. CUPS má vlastnosť rozlíšiť rôzne typy dát a 
+  konvertovať tieto súbory do formy, možnej na tlačenie. 
+
+- CUPS printing suite podporuje 2 metódy tlačenia historicky 
+  použitého na UNIX systémoch. Jedna metóda nazvaná Berkley alebo
+  LPD (použitá v Berkleyho SW Distribúcii verzie Unixu), používa
+  lpr program, pokým ostatné metódy, nazvané SysV (z System V 
+  verzie Unixu), používajú lp program. 
+
+$ lpr (Berkley Style)
+
+- Program môže byť použitý na posielanie súborov tlačiarni. 
+- Môže byť použitý s pipeline-ami ako to akceptuje stdio. 
+
+$ lp (System V Style)
+
+- Ako lpr, lp akceptuje buď súbory alebo stdio pre tlačenie. 
+- Líši sa to od lpr v tom, že podporuje odlišnú možnosť nastavení
+
+$ lpstat
+
+- Program lpstat je užitočný pre nastavenie mena a dostupnosti
+  na systéme. 
+
+$ lprm / cancel
+
+- CUPS podporuje dva programy použité na ukončenie print jobs 
+  a odstránenie ich z print queue. Berkley style je (lprm) a 
+  System V (cancel). Líšia sa len v možnostiach, ktoré podporujú
+  ale robia v podstate rovnaké veci. 
+
+//////////////////////////////////////////////////////////////
+			COMPILING PROGRAMS
+//////////////////////////////////////////////////////////////
+
+So, why compile software? 
+
+	1.) Dostupnosť 
+
+	2.) Časová neobmedzenosť
+
+What is compiling?
+
+- Komplivanie je proces prekladania ZK do natívneho jazyku CPU.
+
+- CPU pracuje na elementálnom leveli, vykonávaním programov v 
+  machine language. To je numeický kód, ktorý popisuje extrémne
+  malé operácie (sčítavanie bitov, odkazovanie na miesto v pamäti).
+  Každá z týchto inštrukcií je vyjadrená v binárnom kóde. 
+
+- Assembly language, nahradili numerické kódy s jednoduchším
+  použitím znaku mnemonikov aok CPY (for copy) a MOV (for move)
+  Programy napísané v assembly jazyku sú spracované do machinage  
+  language pomocou programu nazvaného assembler. 
+  Assembly language sú stále dnes v použití pre určité centralizované
+  programocie úlohy, ako device drivers alebo embedded systems.
+
+- High-level programming jazyky sú "konvertované" do machine language
+  pomocou spracovania ďalším programom, kompilátorom. 
+  Niektoré kompilátory prekladajú high-level inštrukcie do assembly 
+  jazyka a potom používajú assembler na vykonanie finálnej úrovne
+  na preklad do machine language.
+ 
+- Proces použitý v termíne s kompilovaním je linking. Napríklad
+  otvorenie súboru, veľa programov vykonáva túto úlohu, ale bola 
+  by to strata času mať každý program, ktorý by implementoval inú
+  rutinu. Väčší zmysel vytvára mať samostatnú časť programovania 
+  ktorá bude vedieť ako to "vykonať a mať to shared" ktoré to 
+  potrebujú. Poskytovanie podpory pre všeobecné úlohy je dosiahnuté
+  pomocou libraries. 
+
+-> /lib /usr/lib. 
+
+- Program nazvaný linker je použitý na formovanie spojení medzi 
+  výstupom kompilátora a knižnicami, ktoré požaduje kompilovaný
+  program. Finálny výsledok tohto procesu je EXECUTABLE PROGRAM
+  FILE.
+
+////////////////////////////////////////////////////////////////
+			WRITING UR SCRIPT
+////////////////////////////////////////////////////////////////
+
+- Každý script používa #! (shebang) 
+- Shebang sa používa na to, aby sa povedalo kernelu meno 
+  interpretera, ktorý by mal byť použitý na vykonanie scriptu
+  ktorý nasleduje. 
+
+$ chmod 755 script_name 
+
+- Pre scripty, ktoré môže ktokoľvek vykonávať 
+
+$ chmod 700 script_name 
+
+- Pre scripty, ktoré môže vykonávať owner 
+
+- ~/bin dir je dobré miesto na vkladanie scriptov pre personálne
+  využitie. Ak napíšeme sript, ktorý bude môcť vykonávať každý 
+  oprávnený používateľ, tradičná lokácia je /usr/local/bin. 
+
+- Scripty využivané sysadminmi sú uložené v usr/local/sbin.
+
+- Local supplied SW, či už sú to scripty alebo compilované programy
+  by mali byť umiestnené v /usr/local hierarchii. 
+
+/// 
+Config vim for scripting
+---
+
+:syntax on
+
+- Farebná syntax, lepšie error catching. 
+
+:set hlsearch 
+
+- Highlight search result 
+
+:set tabstop=4
+
+Tieto zmeny možeme spraviť permanentné keď to napíšeme do 
+
+-> ~/.vimrc file.
+
+---
+Config vim for scripting
+///
+
+/////////////////////////////////////////////////////////////				STARTING A PROJECT 
+/////////////////////////////////////////////////////////////
+
+- Program, ktorý napíšeme je report generátor. Bude to prezentovať
+  rôznu štatistiku ohľadne nášho systému a bude to produkovať tento
+  report v HTML formáte, tak že si to budeme môcť pozrieť vo web 
+  browseri.
+
+1st stage: Minimal doc
+
+- Spravíme blok HTML kódu a saveneme to do foo.html
+
+-> $file:///home/username/foo.html
+
+- My to ale dokážeme jednoduchšie. Vytvoríme nový súbor ~/bin/sys_info_page.
+
+- cez vim vôjdeme dnu a vložíme
+
+#!/bin/bash
+# Program to output a system information page
+echo
+echo
+echo
+echo
+echo
+echo
+echo
+echo
+"<html>"
+" <head>"
+"
+<title>Page Title</title>"
+" </head>"
+" <body>"
+"
+Page body."
+" </body>"
+"</html>"
+
+$ chmod 755 ~/bin/sys_info_page
+
+$ sys_info_page
+
+- Zobrazí to obsah do terminálu ale my to redirectneme do web browsera
+
+$ sys_info_page > sys_info_page.html
+
+$ firefox sys_info_page.html
+
+-> Dokážeme vytvoriť variable title
+
+title = "System Information Report" 
+
+a volať to pomocou $
+
+RULES ABOUT VARIABLE NAMES:
+
+1.) Názov premenných môže pozostávať s alfanumerických znakov 
+    a underscore znakov.
+
+2.) Prvý znak mena premennej musí byť buď písmeno alebo underscore.
+
+3.) Medzery a interpunkčné znamienka nie sú dovolené.
+
+Shell nerobí rozdiely medzi konštantou a premennou. Všeobecná
+konvencia je použitie UPPERCASE písmen na vytvorenie konštanty a 
+lowercase písmená pre pravé premenné. 
+
+PRIRAĎOVANIE HODNÔT PREMENNÝM A KONŠTANTÁM
+
+variable = value 
+
+- kde variable je meno premennej a value je string. Narozdiel od 
+  ostatných programovacích jazykov shell sa nestará o to aký typ 
+  dát je priradený premennej, zaobchádza s ním ako so stringami. 
+
+a = z				# priradí string "z" premennej a
+b = "a string"			# Voľné miesto potrebuje uvodzovky"
+c = "a string and $b"		# Ostatné expanzie ako napríklad 
+ 				# premenne môžu byť expandované do
+				# priradenia
+d = "$(ls -l foo.txt)"		# Výsledok commandu. 
+e = $((5 * 7))			# Aritmetická expanzia
+f = "\t\ta string\n"		# Escape sekvencie ako tab alebo \n
+
+Viacero priradení premmenných môže byť spravené na jednom riadku:
+
+$ a = 5 b = "a string" 
+
+	HERE DOCUMENTS	
+
+- Pozreli sme sa na dve odlišné metódy na outputting textu, obe 
+  využívajú echo command. Tretí spôsob sa nazýva here documents 
+  alebo here script. Here document je dodatočná forma I/O 
+  redirekcie v ktorej pridávame telo textu do nášho scriptu a 
+  napĺňame to do stdio commandu:
+
+$ command << token 
+$ text
+$ token
+
+cat << _EOF_
+	
+	
+	
+	text
+
+
+
+_EOF_
+
+aká je výhoda používania here documentu? 
+
+-> Vo väčšine prípadov to je niečo rovnaké ako echo, asvšak
+   pri here documente, single a double quotes stratia v shelli
+   to špeciálne "postavenie" 
+
+[me@linuxbox ~]$ foo="some text"
+[me@linuxbox ~]$ cat << _EOF_
+> $foo
+> "$foo"
+> '$foo'
+> \$foo
+> _EOF_
+some text
+"some text"
+'some text'
+$foo
+
+////////////////////////////////////////////////////////////////
+			BRANCHING WITH IF
+////////////////////////////////////////////////////////////////
+
+
+if commands; then
+	commands
+[elif commands; then
+	commands...]
+[else 
+	commands]
+fi
+
+			EXIT STATUS
+
+- Commandy (zahrňujúce scripty a shell funkcie) posielajú hodnotu
+  systému keď ich ukončíme, nazýva sa to exit status. Táto hodnota,
+  ktorá je integer je v rozsahu od 0-255, indikuje úspech alebo fail,
+  pri vykonávaní programu. Podľa konvencie, 0 indikuje úspech a všetko
+  ostatné odkazuje na failure. 
+
+- Ak by sme použili napríklad ls dvakrát. Prvykrát by to zbehlo v pohode
+  druhýkrát by sme potrebovali vidieť hodnotu návratovú, ukázalo by nulu,
+  ak by sme chceli použiť opätovne ls ale teraz by sme chceli zobraziť
+  neexistujúci priečinok, ukázalo by 2, indikujúc, že nastal error. Man
+  pages často zahrňujú sekciu nazvanú "Exit status", ktorá popisuje aké
+  kódy sú použité. 
+
+			TEST
+
+- Command, ktorý sa používa frekventovane s ifom je test. Test command 
+  vykonáva rôzne porovnávania a overovania. Má to dve ekvivalentné formy.
+ 
+  test expression
+
+  Alebo druhú viacej populárnu 
+
+  [expression]
+
+- Kde expression je expression, ktorá je ukončená buď či to je true alebo false
+  Test command vracia exit status 0 ak expression je true a zase vracia exit
+  status 1 ak je expression false. 
+
+- Je to zaujímavé, si poznamenať, že oba test a [] sú aktuálne commandy. V Bashi
+  sú builtin-y, ale tiež existujú ako programy v /usr/bin pre použitie s ostatnými
+  shellmi. Expression je aktuálne argument s [ command requiting that the ] znak
+  ktorý bude použitý ako finálny argument. 
+
+- Test a [ command podporujúci vysoký rozsah užitočných expresíí a testov ]. 
+
+- Pod test spadá: File Expressions, String Expressions, Integer Expressions.
+
+- Moderná verzia bashu zahŕňajú coommand, ktorý sa správa ako vylepšené 
+  nahradenie pre test, používajúci nasledovnú syntax. [[ expression ]]. 
+
+- Kde ako test, expression je len expression, ktorá "vyhadzuje" buď true/false
+  [[ ]] comamnd je podobný testu (podporuje všetky jeho expressions), ale pridáva
+  nové dôležité string expressions. 
+
+  string1 =+ regex
+
+- V dodatku bash poskytuje j (( ))) command, ktorý je veľmi užitočný pre 
+  pracovanie s intami. Podporuje to celý set aritmetických evaulácií. 
+
+ (( )) sa používa na vykonanie aritmetických pravdivostných testov. 
+
+
+	 Combining expressions 
+
+- Je tiež možné kombinovať expressions na vytvorenie viac komplexnejších evaulácií.
+  Expressions sú kombinované s použitím logických operátorov. 
+
+	Operácia 	test		[[ ]] a (( )) 
+
+	AND		-a		     &&
+	OR		-o		     ||
+ 	NOT		!		      !
+ 
+
+	Control Operatos: Another way to branch
+
+- Bash poskytuje 2 control operátory, ktoré môžu vykonávať branching. && a || 
+  operátory, ktoré pracujú ako logické operátory v [[ ]]. 
+
+$ mkdir temp && cd temp
+
+alebo
+
+$ [[ -d temp ]] || mkdir temp
+
+- Toto bude najprv testovať existenciu diru temp, a len ak test zlyhá tak 
+  bude vytvorený dir. Tento typ konštrukcie je veľmi užitočný pre zaobchádzanie
+  s chybami v scriptoch. 
+
+- Existuje niekoľko sekcií v bashi, ktoré poskytujú širšie detaily: 
+
+	-> Listy (pokrývajú control operátory || a &&) 
+	-> Compound Commandy (pokrývajú [[ ]], (( )) a if)
+	-> Conditional Expressions
+	-> Shell Builtin Commandy (pokrývajú test)
+
+/////////////////////////////////////////////////////////////////////////////
+			READING KEYBOARD INPUT
+/////////////////////////////////////////////////////////////////////////////
+
+Read - Read values from stdio
+
+$ read [-options] [variable...]
+
+- Read builtint command je používaný na čítanie samostatného riadku z stdio.
+- Tento command môže byť použitý na čítanie vstupu z klávesnice alebo keď je 
+  použitá redirekcia, riadky dát zo súboru. 
+
+- Options je jedna alebo viac možností a variable je meno jednej alebo viacerých
+  premenných, na držanie vstupnej hodnooty. Ak nie je "dodaná" žiadna premenná 
+  shell variable REPLY obsahuje riadky dát. 
+
+- Read priraďuje polia z stdio na špecifické premenné.
+
+
+	IFS
+
+- Normálne, shell vykonáva word splitting na vstupe poskytnutým na read. To znamená,
+  že viacero slov oddelených jedným alebo viac miestami sa stane "rodzelenými 
+  položkami" na vstupnom riadku a sú priradené "rozdelenýcm premenným" pomocou read. 
+
+- Toto správanie je nakonfigurované pomocou shell variable pomenovanou IFS (Internal
+  Field Separator). Defaultná hodnota IFS obsahuje space, tab, \n atď.
+ 
+- Riadok pozostáva z troch častí: Priradenie premennej, read command so zoznamom
+  mien premenných ako argumentov, a divný nový redirection operator. 
+
+- Shell umožňuje priradenie jednej alebo viac prememných na to aby zobrali miesto
+  hneď pred príkazom. Tieto priradenia vstupujú do prostredia pre príkaz pre ktorý
+  nasledujú. Efekt priradenia je dočasným zmenením prostredia pre trvanie príkazu,
+  v našom prípade hodnota IFS je zmenená na colon znak. (:)
+
+OLD_IFS="$IFS"
+IFS=":"
+read user pw uid gid name home shell <<< "$file_info"
+IFS="$OLD_IFS"
+
+- Mohli by sme to naprogramovať týmto spôsobom, tam kde my ukladáme hodnotu z IFS,
+  priraďuje sa nová hodnota na vykonanie read commandu a potom sa obnovuje na 
+  jej novú originálnu hodnotu. <<< operátor indikuje here string. Here string je ako 
+  here dokument, len kratší, pozostávajúci so samostatného reťazca. Riadok dát z 
+  /etc/passwd súboru je "nakŕmený" na stdio read príkazu ale read sa nemôže pipnuť.
+
+
+- V bashi pipeliny vytvárajú subshelli. Subshelly v Unixových systémoch vytvárajú
+  kópie prostredia pre procesy na použitie počas vykonávania. Keď sú procesy 
+  dokončené kópia prostredia je zničená. To znamená, že subshell nikdy nemôže 
+  pozmeniť prostredie z jeho parent procesu. Read priraďuje premenné, ktoré 
+  potom môžu byť časťou prostredia. 
+
+
+	VALIDATING INPUT
+
+- Častý rozdiel medzi dobre napísaným programom a zle napísaným programom, je to 
+  že tam nie je schopnosť zaobchádzať so zlým vstupom. 
+
+
+/////////////////////////////////////////////////////////////////////////////////
+	       		LOOPING WITH WHILE/UNTIL
+/////////////////////////////////////////////////////////////////////////////////
+
+while commands; do commands; done
+
+- ako If, while vyhodnocuje exit status nejakého bloku/zoznamu príkazov, ak je exit
+  status 0, tak to vykonáva príkazy v slučke. V scripte while.sh, premenná count je
+  vytvorená a je jej priradená počiatočná hodnota 1. While command vyhodnocuje 
+  exit status z [[ ]] commandu. Ako [[ ]] command vracá exit status 0, commandy v 
+  slučke sú vykonávané. Na konci každej slučky sú commandy [[ ]] opakované. Po 
+  piatich iteráciách slučky, hodnota count-u sa zvýši na 6, [[ ]] commmand nedáva 
+  už exit status 0  a slučka sa ukončuje. Program pokračuje ďalším statementom, ktorý
+  nasleduje po slučke. 
+
+- Slučku while, môžeme použiť na vylepšienie read-menu programu z predchádzajúcej 
+  kapitoly.
+
+- Pomocou ukončenia menu v while slučke, sme schopný program opakovať po každej 
+  selekcii. Slučka pokračuje tak dlho, kým REPLY nie je rovné 0 a menu je potom
+  zobrazené opätovne, dávajúc používateľovi možnosť opakovať ďalšiu selekciu. Na
+  konci každej akcie, sleep command je vykonávaný, takže program bude pauzovať na 
+  pár sekúnd na dovolenie výsledkom selekcie na to aby boli vidno položky predtým
+  ako bude obrazovka zmazaná a menu bude opätovne zobrazené. Akonáhle je REPLY rovné
+  0, indikuje to "quit" selekciu, slučka sa ukončuje a vykonávanie programu pokračuje
+  s riadkom kde je done. :-) 
+
+
+	Breaking out of a Loop
+
+- Bash poskytuje 2 builtin programy, ktoré môžu byť použité na Control Program Flow
+  v rámci slučiek. Break command bezprostredne ukončuje slučku a Program Control s 
+  nasledujúcim tvrdením v rámci slučky. Continue command spôsobuje to, že ostatok
+  bude v slučke preskončený a Program Control pauzuje s ďalšou iteráciou slučky. 
+
+- V ďalšej verzii while_menu2 to je spravené pomocou break a continue.
+
+- V tejto verzii scriptu, nastavujeme nekonečnú slučku (jedna, ktorá nikdy nekončí)
+  použitím true commandu na to aby sme dokázali dávať exit status do while-u. Odkedy
+  true bude stále nastavený na 0, slučka nikdy neskončí. Toto je neočakavajúca 
+  scripting technika. Takže ak slučka neskončí, je to na programátorovi ako to spraví
+  aby tam bol nejaký "break out" keď nastane čas. V tomto scripte, break command 
+  je použitý na to keď exit status v slučke je rovný hodnote 0, alebo selekcii 0. 
+  Continue command bol zahrnutý na konci ďalších script možností na povolenie 
+  viac efektívnejších exekúcií. Použitím continue, script bude skipovať cez kód 
+  ktorý nie je potrebný, keď je identifikovaná selekcia. Napríklad ak je vybraná 
+  1 selekcia, nie je tam žiadny dôvod na testovanie ostatných selekcií. 
+
+
+UNTIL 
+
+- Until command je trošku viac ako while, okrem toho, že na miesto ukončovania 
+  slučky keď nie je non zero exit status zastavený, vykonáva to opak. Slučka 
+  until pokračuje kým to nedosiahne zero exit status. V našou while-count scripte
+  pokračujeme v slučke tak dlho kým hodnota premennej count bola menšia alebo rovná 
+  hodnote 5, rovnaký výsledok však môžeme dostať v scripte púomocou until.
+
+- Pomocou zmeny testovaného výrazu $count -gt 5, until bude ukončovať slučku v 
+  správnom čase. Rozhodnutie či použiť while alebo until obyčajne závisí od toho
+  ako najčistejšie má byť napísaný test. :-) 
+
+- While a Until môžu spracovať stdio. To dovoľuje súborom aby boli spracované s 
+  while-om alebo until slučkami. 
+
+
+	http://tldp.org/LDP/Bash-Beginners-Guide/html/sect_09_02.html
+
+- The Bash Guide for Beginners from the Linux Doumentation Project: 
+
+
+/////////////////////////////////////////////////////////////////////////////
+				TROUBLESHOOTING
+//////////////////////////////////////////////////////////////////////////////
+
+			Syntaktické chyby:
+
+- Jednou všeobecnou triedou chýb, sú syntaktické chyby. Syntaktické chyby zahŕňajú
+  zlé napísanie nejakého elementu v shell syntaxi. Shell prestane vykonávať script
+  keď zaznamená tento typ chyby. 
+
+Chýbajúce úvodzovky:
+
+- Aby sa človek vyhol chýbajúcim úvodzovkom mal by zapnúť vo Vim-e :syntax on. 
+
+Chýbajúci alebo neočakávaný token:
+
+- Ďalšou všeobecnou chybou je zabúdanie dokončiť príkaz, ako napríklad if alebo
+  while. 
+
+Neočakavajúce rozšírenia: 
+
+- Je možné mať chyby, ktoré nastávajú nesúvisle v scripte. Niekedy bude script 
+  fungovať v pohode a niekedy to zlyhá na výsledkoch expanzie. 
+
+
+
+			Logické chyby: 
+
+- Narozdiel od syntaktických chýb, logické chyby nechránia script od bežania. Script
+  bude bežať ale produktom nebude želaný výsledok, pretože provblém je v logike.
+
+  Chyby ktoré sú vo všeobecnosti nachádzané v scriptoch: 
+
+1.) Incorrent conditional expressions: 
+	
+- Je to veľmi jednoduché naprogramovať zlý kód if/then/else a mať zlú výhodiskovú
+  logiku. Niekedy bude logika rezervovaná alebo nebude kompletná. 
+
+2.) "Off by one" errors:
+
+- Keď programuje slučky, ktoré používajú počítadlo, je to možné sa opäť pozrieť na 
+  slučku, ktorá požaduje počítanie od nuly, radšej ako jednu, pre počet na vyvodenie
+  záveru na konečnom bode. Tieto druhy chýb buď v slučke idú "going off the end" od
+  počítania príliš skoro alebo neskoro alebo slučke chýba posledná iterácia alebo
+  sa ukončuje iterácia príliš skoro. 
+
+3.) Unanticipiated situations.
+
+
+
+		Defensive Programming: 
+
+- Je dôležité overovať domnienky keď programujeme. To znamená opatrné vyhodnotenie 
+  exit statusu programu a príkazu, použitého scriptom. Tu je príklad, založený na 
+  pravdivom príbehu. Neštastný systémový administrátor napísal script na vykonanie
+  údržby ulohy na dôležitom serveri. 
+
+$ cd $dir_name
+$ rm *
+
+- V podstate tam nie je nič zlé s týmito dvoma riadkami alebo s dirom pomenovaným 
+  v premennej, dir_name, existuje, ale čo by sa stalo ak by neexistovalo? V tomto 
+  prípade cd command zlyhá a script pokračuje na ďalší riadok a vymaže súbory v 
+  aktuálnom pracovnom adresári. A z toho nemáme očakávaný výsledok. Nešťastný 
+  administrátor zničil dôležitú časť serveru, kvôli svojmu dizajnovému rozhodnutiu. 
+ 
+- Poďme sa pozrieť na nejaké spôsoby ako vylepšiť dizajn. Po prvé, prvou vecou by
+  bolo zabezpečiť, že dir_name premenná expanduje len do jedného slova, takže sa 
+  to zaquotuje a spraví sa vykonanie rm, až po úspechu cd: 
+
+$ cd "$dir_name" && rm *
+
+- Týmto spôsobom, ak cd command zlyhá, rm command nebude pokračovať. To je lepšie ale  stále sa tam otvára možnosť, že premenná dir_name, nie je nastavená alebo je 
+  prázdna. Tomuto sa tiež môžeme vyhnúť tým, že si overíme či premenná dir_name
+  aktuálne obsahuje meno existujúceho diru: 
+
+$ [[ -d "$dir_name" ]] && cd "$dir_name" && rm * 
+
+- Často je lepšie zahrnúť logiku na ukončenie scriptu a reportovať chybu ak situácia
+  ako predtým nastane. 
+
+# Delete files in dir $dir_name
+
+if [[ ! -d "$dir_name" ]]; then
+	echo "No such directory: '$dir_name'" >&2
+	exit 1
+fi
+
+if ! cd "$dir_name"; then
+	echo "Cannot cd to '$dir_name'" >&2
+	exit 1
+fi
+if ! rm*; then
+	echo "File deletion failed. Check results" >&2
+	exit 1
+fi
+
+
+- Týmto overíme obe mená, na to či existuje dir a či uspeje cd command. Ak to zlyhá,
+  descriptive error message je poslaný na stderr a script ukončuje s nejakým exit
+  statusom na indikovanie chyby. 
+
+
+		Watch out for Filenames 
+
+- Existuje tu ďalší problém s file deletion scriptami, ktorý je viac nepochopiteľný
+  ale môže byť veľmi nebezpečný. Unix a (Unixové OS) majú, v myšlienke, veľmi 
+  seriózny dizajnový defekt, keď príde ku menám súborov. Unix je extrémne tolerantný 
+  čo sa ich týka. Vo fakte, existujú len dva znaky, ktoré nemôžu byť zahrnuté v mene
+  súboru. Prvý je /, odkedy sa používa na oddelovanie elementov cesty súboru a potom
+  to je null znak (zero byte), ktorý sa používa interne na značenie koncov reťazcov. 
+  Všetko ďalšie je legálne zahrňujúc medzery, tabulátory, spojovníky atď.
+
+- Na obhajobu tohto problému, potrebujeme zmeniť náš rm command vo file deletion 
+  scripte z tohto: 
+
+$ rm *
+
+na 
+
+$ rm ./*
+
+- Toto bude prevencia pre mená súborov, ktoré začínajú so spojovníkom od toho aby
+  boli interpreterované ako možnosť príkazu. Ako všeobecné pravidlo, obyčajne 
+  treba predhádzať wildcardami (ako napríklad * a ?) s ./ na prevenciu chýb
+  podľa príkazov, to zahŕňa príkazy ako *.pdf a ???.mp3.... 
+
+- Na zabezpečenie toho, že meno súboru je presnoné medzi rôznymi platformami, 
+  musí sa brať ohľad na počet znakov, ktoré sú zahrnuté v mene súboru. Tento 
+  štandard sa volá POSIX. 
+
+
+		Verifying Input
+
+- Všeobecné pravidlo dobrého programovania, je to že program akceptuje vstup a
+  musí vedieť zaobchádzať s akýmkoľvek vstupom, ktorý dostane. To obyčajne znamená,
+  že vstup musí byť bezpečne zobrazený, na zabezpečenie, že len tento platný vstup
+  je akceptovaný pre ďalšie spracovanie. Jeden scrpt obsahoval nasledujúci test na 
+  verifikovanie menu selekcie: 
+
+[[ $REPLY =~ ^[0-3]$ ]]
+
+- Tento test je veľmi špecifický. Vracia to 0 exit status práve vtedy ak je reťazec
+  vložený používateľom numerický od 0-3. Nič ďalšie nebude akceptované. Niekedy 
+  tieto druhy testov môžu byť challengom, ale úsilie je nevyhnuté na produkciu 
+  high-quality scriptu. 
+
+
+		Testing
+
+- Testovanie je veľmi dôležitým krokom v každej oblasti SW Developmentu, zahrňujúc 
+  scripty. V open-source svete, "release early, release often", ktorý to odzrkadľuje.
+  Podľa releasovania skoro a často, SW získava viac vystavenia na používanie a 
+  testovanie. Skúsenosť ukazuje, že je jednoduchšie nájsť bugy a ešte menej cenovo 
+  náročné ich fixnúť, ak sú nájdené v skorom vývojovom cykle. Poďme sa pozrieť na 
+  file-deletion problem, ktorý sme ukázali predtým a pozrime sa ako by sa to 
+  lepšie nakódilo pre jednoduchšie testovanie. Testovanie originálneho fragmentu kódu  by bolo nebezpečné odkedy je zámer vymazávať nejaké súbory, ale môžeme modifikovať 
+  kód na to aby bol test bezpečnejší.
+
+if [[ -d $dir_name ]]; then
+if cd $dir_name; then
+echo rm * # TESTING
+else
+echo "cannot cd to '$dir_name'" >&2
+exit 1
+fi
+else
+echo "no such directory: '$dir_name'" >&2
+exit 1
+fi
+exit # TESTING
+
+- Odkedy cez error podmienky už idú užitočné správy, tam nemusíme pridávať žiadne. 
+  Najdôležitejšou zmenou je umiestnenie echo príkazu pred tým rm príkazom, na 
+  dovolenie príkazu a jeho expandujúcemu zoznamu argumentov aby bol zobrazený,
+  radšej ako keby bol príkaz automaticky vykonávavaný. Táto zmena dovoľuje bezpečné
+  vykonávanie kódu. Na konci fragmentu kódu, umiestnime command exit na vyvodenie 
+  testu a prevenciu akejkoľvek inej časti scriptu aby bola "vynesená von". Tiež tam 
+  dávame nejaké komenty, ktoré sa správajú ako #markers pre naše test-related zemny.   To môže byť použité na nájdenie a odstránenie zmien, keď je dokončené testovanie. 
+
+	
+		Test cases
+
+- Na vykonanie užitočného testovanie, je tôležité vyvinúť a aplikovať dobré 
+  testovacie prípady. To môže byť spravené podľa vhodne zvolených vstupných dát
+  alebo operujúcich podmienok, ktoré odrzkadľujú hranu a rohové prípady. V našom
+  kódovom fragemente, (ktorý je jednoduchší), chceme vedieť ako kód bude vykonávať
+  nasledujujúce tri špecifické podmienky: 
+
+1.) dir_name obsahuje meno existujúceho diru
+
+2.) dir_name obsahuje meno neexistujúceho diru
+
+3.) dir_name je prázdne. 
+
+- Vykonávanie testu s každou s týchto podmienok je dosiahnutím dobrého pokrytia 
+  testov. 
+
+
+
+		Debugging 
+
+- Ak testovanie odhaľuje problém so scriptom, ďalšou časťou je debugovanie. 
+  Problém obyčajne znamená, že script neočakáva očakávania programátora. Ak v tomto 
+  prípade potrebujeme opatrne determinovať exaktne čo script aktuálne vykonáva a 
+  prečo. Hľadanie bugov môže niekedy zahŕňať dosť práce ako detektív. 
+
+- Dobre nadizajnovaný script sa nám bude snažiť pomôcť. Malo by to byť naprogramované
+  defenzívne, na detekovanie abnormálnych podmienok a poskytnutie užitočného 
+  feedbacku používateľom. Niekedy sú však problémy trošku divné a neočakávané,
+  a preto sú potrebné ďalšie rôzne techniky
+
+
+
+		Finding the problem Area
+
+- V niektorých scriptoch, väčšinou vo väčších, je to užitočné izolovať oblasť 
+  scriptu, ktorá je spojená s problémom. To nebude vždy aktuálny error, ale izolácia
+  bude často poskytovať porozumenie na aktuálny dôvod. Napríklad, naš fragment na 
+  vymazanie súboru by mohol byť modifikovaný na determinovanie či odstránená sekcia
+  bola spojená s chybou. 
+
+if [[ -d $dir_name ]]; then
+if cd $dir_name; then
+rm *
+else
+echo "cannot cd to '$dir_name'" >&2
+exit 1
+fi
+# else
+#
+echo "no such directory: '$dir_name'" >&2
+#
+exit 1
+fi
+
+- Vložením comment symbolov na začiatok každého riadku v logickej sekcii scriptu,   
+  chránime sekciu predtým, aby bola vykonaná. Testovanie môže byť vykonané opätovne
+  na to či odstránený kód má nejaký dopad na správanie sa bugu. 
+
+
+		Tracing 
+
+- Bugy sú časté prípady neočakávaného logického flowu v rámci scriptu. To znamená, 
+  že časti scriptu buď vôbec neboli vykonané alebo boli vykonané v zlom poradí, alebo  v zlom čase. Na to aby sme si pozreli aktuálny flow programu, používame techniku
+  tracing.
+
+
+- Jedna tracing metóda zahŕňa umiestnenie informatívnych správ v scripte, ktoré 
+  zobrazujú lokáciu vykonávania. Dávame správy do nášho kódového fragmentu. 
+
+
+echo "preparing to delete files" >&2
+if [[ -d $dir_name ]]; then
+if cd $dir_name; then
+echo "deleting files" >&2
+rm *
+else
+echo "cannot cd to '$dir_name'" >&2
+exit 1
+fi
+else
+echo "no such directory: '$dir_name'" >&2
+exit 1
+fi
+echo "file deletion complete" >&2
+
+- Posielame správy na stderr na oddelenie ich od normálneho výstupu. 
+
+- Bash tiež poskytuje metódu tracingu, implementovanú pomocou -x možnosti a set
+  commandom s -x možnosťou. Použitím trouble scriptu, môžeme to môžeme aktivovať
+  pre celý script pridaním možnosti -x. 
+
+- So zapnutým tracingom, vidíme commandy, ktoré sú vykonávané s aplikovanou 
+  expanziou. Pluská indikujú zobrazenie tracu na to aby sme to odlíšili od normálneho
+  výstupu. Je to obsiahnuté v PS4 (promt string 4) shell premennej. Obsahy tejto 
+  premennej môžu byť regulované na vytvorenie promptu aby bol viacej užitočnejší. 
+  Tu môžeme modifikovať obsahy premennej na zhrnutie aktuálneho riadku v scripte kde
+  je vykonaný trace. Single quotes sú vyžadované aby sme mali prevenciu, kým je
+  prompt aktuálne v používaní: 
+
+$ export PS4='$LINENO + '
+
+$ ./trouble.sh
+
+- Na vykonanie tracu na vybranej časti scriptu, radšej ako na celom scripte môžeme
+  použiť set command s možnosťou -x. 
+
+#!/bin/bash
+# trouble: script to demonstrate common errors
+number=1
+set -x # Turn on tracing
+if [ $number = 1 ]; then
+echo "Number is equal to 1."
+else
+echo "Number is not equal to 1."
+fi
+set +x # Turn off tracing
+
+- Používame set command s -x možnosťou na aktivovanie tracingu a +x možnosť na 
+  deaktivovanie tracingu. Táto technika môže byť použitá na vyhodnocovanie viacerých
+  častí troublesome scriptu. 
+
+
+	Zdroje pre technické aspekty programovania v bashi 
+
+http://mywiki.wooledge.org/BashPitfalls
+http://tldp.org/LDP/abs/html/gotchas.html
+http://www.gnu.org/software/bash/manual/html_node/Reserved-Word-Index.html
+
+	David Wheeler has a excellent discussion of the Unix filename problem and how
+	to code shell scripts to deal with it:
+
+https://www.dwheeler.com/essays/filenames-in-shell.html
+
+	For really heavy-duty debugging, there is the Bash Debugger:
+http://bashdb.sourceforge.net/
+
+
+/////////////////////////////////////////////////////////////////////////////
+			BRANCHING WITH CASE OPTION
+/////////////////////////////////////////////////////////////////////////////
+
+case 
+
+- V bashi, viacvýberový command sa nazýva case. Má nasledujúcu syntax: 
+
+case word in
+	[pattern [| pattern]...) commands ;;]...
+esac
+
+- V scripte case_menu.sh, case comand sa pozerá na hodnotu slova, hodnota premennej
+  REPLY a potom sa to to porovnáva s nasledujúcimi vzormi. Keď sa nájde zhoda, 
+  príkazy spojené so špecifickým vzorom sú vykonávané.
+
+Patterns:
+
+- Vzory používané case-om sú rovnaké ako tie, ktoré používajú pathname expansions. 
+
+Pattern		Description
+
+a)		Matches if word equals "a".
+[[:alpha:]])    Matches if word is a single alphabetic char.
+???)		Matches if word is exactly 3 char long
+*.txt)		Matches if words ends with chars ".txt"
+*)		Matches any value of word
+
+	
+	Performing multiple actions
+
+- Vo verziách bashu 4.0, case umožňuje len jednu akciu vykonávanú na úspešnej
+  zhode. Po úspešnej zhode sa príkaz ukončuje. Script case_menu3.sh.
+
+
+//////////////////////////////////////////////////////////////////////////
+			POSITIONAL PARAMETERS
+//////////////////////////////////////////////////////////////////////////
+
+- Jedna vlastnosť, ktorá chýbala pre naše programy, bola schopnosť akceptovať
+  a spracovať možnosti a argumenty príkazového riadku. 
+
+
+	Accesing the Comand Line
+
+- Shell poskytuje zoznam premenných nazvaných pozičné parametre, ktoré
+  obsahujú individuálne slová na príkazovomriadku. 
+
+- Sú demonštrované v scripte posit-param.sh
+
+- Ak to spustíme ./posit_param 1 2 3 4, tak to priradí 0 - 4 hodnoty...
+
+
+	Determining the number of arguments 
+
+- Shell tiež poskytuje premennú, $#, ktorá obsahuje číslo argumentov 
+  príkazového riadku. 
+
+- posit_param2.sh
+
+	
+	Shift - Getting access to many args
+
+- Čo sa stane keď dáme programuje veľké množstvo argumentov? 
+
+$ ./posit-param2.sh *
+
+- Na tomto príklade, wildcard *, expanduje do 14tich argumentov, ako dokážeme
+  spracovať také množstvo? Shell poskytuje metódu, ktorá sa o to postará. 
+  Shift command spôsobuje, že všetky parametre sa "move down one" každý krát
+  keď to je executed. 
+
+$ ./posit-param3.sh
+
+- Každý krát keď je shift executed, hodnota z $2 je posunutá na $1 a hodnota
+  $3 je posunutá na $2 a tak ďalej. Hodnota $# je tiež redukovaná o 1. 
+
+- V programe posit_param3, možeme vytvoriť slučku, ktorá vyhodnocuje čísla 
+  ostávajúcich argumentov a pokračuje kým tam nie je jeden. Môžeme zobraziť
+  aktuálny argument, incrementujeme premennú count s každou iteráciou v slučke
+  na poskytnutie bežiaceho countu čísel spracovaných argumentov a finálne 
+  vykonávame shift na načítanie $1 s ďalším argumentom. 
+
+	
+	Simple applications
+
+- Dokonca aj bez shiftu, je to možné napísať užitočnú appku použitím pozičných
+  parametrov. 
+
+- file_info.sh file.txt
+
+- Tento program zobrazí file type (determinovaný file commandom) a file status
+  z (stat commandu) na špecifickom súbore. Jedna zaujímavá vlastnosť tohto
+  programu je premenná PROGNAME. Je daná hodnota, ktorá je výsledkom z 
+  basename "$0" commandu. Basename command odstraňuje "leading portion of a 
+  pathname" a necháva len base name súboru. V našom príklade, basename 
+  odstraňuje "leading portion" cesty, ktorá je obsiahnutá v $0 parametri.
+  Táto hodnota je užitočná keď konštruujeme správy ako správy obsadenosti
+  na konci programu. 
+
+			Further Reading
+
+● The Bash Hackers Wiki has a good article on positional parameters:
+
+	http://wiki.bash-hackers.org/scripting/posparams
+● The Bash Reference Manual has an article on the special parameters, including $* and $@:
+
+http://www.gnu.org/software/bash/manual/bashref.html#Special-Parameters
+
+● In addition to the techniques discussed in this chapter, bash includes a builtin
+command called getopts, which can also be used for process command line ar-
+guments. It is described in the SHELL BUILTIN COMMANDS section of the
+bash man page and at the Bash Hackers Wiki:
+
+http://wiki.bash-hackers.org/howto/getopts_tutorial
+
+
+////////////////////////////////////////////////////////////////////////////
+       			LOOPING WITH FOR 
+///////////////////////////////////////////////////////////////////////////
+
+
+- V tejto finálnej časti flow control sa pozrieme na ďalšie shell looping
+  konštrukcie. For slučka sa líši od while-u a until, že to poskytuje 
+  nejakú sekvenciu na spracovanie v slučke. 
+
+  Syntax: 
+
+for variable [in words]; do 
+	commands
+done
+
+- Kde premenná je meno premennej, ktorá bude inkrementovaná počas exekúcie 
+  slučky, words je možný zoznam položiek, ktoré budú sekvenčne priradené 
+  premennej a príkazy sú príkazy, ktoré budú na každej iterácii slučky. 
+
+napríklad: 
+
+$ for i in A B C D; do echo $i; done
+
+alebo
+
+$ for i in {A..D}; do echo $i; done
+
+
+	for: C Language Form
+
+- Neskoršie verzie bashu pridali druhú formu forka. 
+
+for (( expression1; expression2; expression3));
+	commands
+done
+
+- Expression1....3 sú aritmetické výrazy...
+
+- Táto forma je ekvivalentná: 
+
+(( expression1 ))
+while (( expression2 )); do
+	commands
+      (( expression3 ))
+done
+
+- Pozri sa na: ./simple-counter.sh
+
+
+	Basic Parameters
+
+
+- Najjednoduchšia forma parametrovej expanzie je odzrkadlená vo zvyčajnom
+  použití premennej.
+
+$a
+
+- Keď je expandovaní, to sa stáva kedykoľvek čo premenná a obsahuje. 
+  Jednoduché parametre môžu byť vložené do {}. Toto nemá žiaden vplyv na 
+  expanziu, ale je to požadované ak premenná je priradená ku ďalšiemu
+  textu, ktorý môže zaskočiť shell. 
+
+$ a="foo"
+$ echo "${a}_file"
+
+
+	Expanzie na manažovanie prázdnych premenných
+
+- Niekoľko expanzných parametrov je usmernených aby pracovali s neexistujúcimi
+  či prázdnymi premennými. Tieto expanzie sú dôležité pre zaobchádzanie s 
+  chýbajúcimi pozičnými parametrami a priraďovaním defaultných hodnôt 
+  parametrom. 
+
+${parameter:-word}
+
+- Ak parameter nie je nastavený (neexistuje alebo je prázdny) táto expanzia
+  je výsledkom v hodnote slova. Ak parameter nie je prádzny, výsledkami 
+  expanzie sú hodnoty parametru.
+
+${parameter:=word}
+
+- Ak parameter nie je nastavený alebo prázdny, expanzia vyhodnocuje hodnotu
+  slova. Hodnota slova je priradená parametru. Ak parameter nie je prádzny,
+  výsledkom expanzie je hodnota parametra.
+
+${parameter:?word}
+
+- Ak parameter nie je nastavený, táto expanzia spôsobí, že script bude mať 
+  error a obsahy slov sú odoslané na stderr. Ak parameter nie je prázdny
+  výsledkom expanzie je hodnota parametra. 
+
+
+${parameter:+word}
+
+- Ak parameter nie je nastavený alebo je prázdny, výsledkom expanzie je nič.
+  Ak parameter nie je prádzny, hodnota je slova je substiuovaná pre parameter
+  avšak, hodbota parametra je nezmenená. 
+
+
+	Expanzie, ktoré vracajú mená premenných
+
+- Shell má schopnosť vracať mená premenných. To je použité v exotických
+  situáciách. 
+
+${!prefix*}
+${!prefix@}
+
+- Expanzia vracia mená existujúcich premenných s menami, ktoré začínajú s 
+  prefixom. 
+
+$ echo ${!BASH*}
+
+	
+	String operácie
+
+- Existuje veľká skupina expanzií, ktorá môže byť použitá na pracovanie so
+  stringami. Veľa s týchto expanzií sú čiastočne vhodné na prácu podľa
+  pathnames.
+
+${#parameter}
+
+- Expanduje do dĺžky reťazca obsiahnutého parametrom, normálne, je parameter
+  string avšak, ak paramater je buď @ alebo *, potom je výsledkom expanzie 
+  číslo pozičných parametrom. 
+
+$ foo="This string is long."
+$ echo "'$foo' is ${#foo} characters long."
+
+${parameter:offset}
+${parameter:offset:lenght}
+
+- Tieto expanzie sú používané na extrakciu časti stringu, ktorý je obsiahnutý
+  v parametri. Extracia začína znaky offset zo začiatku stringu a pokračujú 
+  na koniec stringu, kým nie je špecifikovaná lenght.
+
+- Ak hodnota offset je negatívna, tak to znamená že to začína od konca reťazca
+  a nie od začiatku. Treba si zapamätať, že negatívne hodnoty musia byť 
+  oddelené medzerou na to aby sa predišlo kolízii s ${parameter:-word} 
+  expanziou, dĺžka ak je prítomná nemusí byť menšia ako 0. 
+
+$ foo="This string is long."
+$ echo ${foo:5}
+  string is long.
+$ echo ${foo:5:6}
+  string
+
+$ foo="This string is long."
+$ echo ${foo: -5}
+  long.
+$ echo ${foo: -5: 2}
+  lo
+
+${parameter#pattern}
+${parameter##pattern}
+
+- Tieto expanzie odstránia "leading portion z reťazca, obsiahnutého v 
+  parametri definovanom podľa patternu. Pattern je wildcard pattern ako tie
+  ktoré sa používajú v expanzii pathname. Rozdiely medzi týmito dvoma 
+  formami je v tom, že # forma odstraňuje najkratšiu zhodu, pokiaľ ## forma
+  odstraňuje najdlhšiu zhodu.
+
+$ foo=file.txt.zip
+$ echo ${foo#*.}
+  txt.zip
+$ echo ${foo##*.}
+  zip
+
+${parameter%pattern}
+${parameter%%pattern}
+
+- Tieto expanzie sú rovanké ako predchádzajúce # a ## expanzie, len výnimkou
+  je to, že oni odstraňujú od konca reťazca obishanutého v parametri.
+
+${parameter/pattern/string}
+${parameter//pattern/string}
+${parameter/#pattern/string}
+${parameter/%pattern/string}
+
+- Tieto expanzie vykonávajú search-&-replace operáciu nad obbsahmi parametri.
+  Ak je nájdený text, ktorí je zhodou wildcard patternu, je nahradený obsahom
+  stringu. V normálnej forme, len prvá uhoda je vymenená. v // forme sú všetky
+  zhody vymenené. Forma /# vyžaduje zhodu, ktorá nastane na začiatku reťazca, 
+  a /% forma vyžaduje zhodu, ktorá nastane na konci reťazca. V každej forme, 
+  by mal byť string vynechaný,lebo to spôsobá, že pattern kde nastane zhoda
+  bude vymazaný. 
+
+$ foo=JPG.JPG
+$ echo ${foo/JPG/jpg}
+  jpg.JPG
+$ echo ${foo//JPG/jpg}
+  jpg.jpg
+$ echo ${foo/#JPG/jpg}
+  jpg.JPG
+$ echo ${foo/%JPG/jpg}
+  JPG.jpg
+
+- Expanzie s manipulovaním stringov môžu byť užitočné ako substitúcie pre
+  ďalšie príkazy ako sed a cut. Expanzie môžu vylepšiť efektivitu v scriptoch
+  eliminovaním použitia externých programov. Ako príklad modifikujeme 
+  longest_word2 program, diskutovaný v predošlej časti na použitie 
+  parametrovej expanzie ${#j} v mieste príkazovej substitúcie
+  $(echo -n $j | wc -c) 
+
+	
+	Case conversion
+
+- Bash má 4 parametrové expanzie a 2 možností declare commandov na podporu
+  uppercase/lowercase konverzie stringov.
+
+- Declare command môže byť použitý na normalizovanie stringov buď uppercaseom
+  alebo lowercaseom. Použitím declare, môžeme priamo zasahovať aby premenná 
+  obsahovala taký formát aký chceme, nezávisiac od toho ako je priradená. 
+
+
+	Arithmetic Evaluation and Expansion
+
+$((expression))
+
+- Kde expression je platný aritmetický výraz
+
+
+ Notation       	Description
+
+ number			Decimálne
+ 0number		Octal
+ 0xnumber		Hexadecimal
+ base#number		Number is in base
+
+
+	Unárne operátory:
+
+- Poznáme 2 unárne operátory, + a -. 
+
+
+	Simple arithmetic:
+
+Operator	Decription
+
++		Addition
+-		Substraction
+*		Multiplication
+/		Int division
+**		Exponentation
+%		Modulo
+
+	
+	Assignment:
+
+ Notation		Description
+ 
+ parameter = value	Simple assignment, priradí hodnotu parametru
+ parameter += value	Nevysvetlujem
+ parameter -= value	Totež
+ parameter *= value	....
+ parameter /= value	Integer len
+ parameter++		Variable post-increment
+ parameter--		Variable post-decrement
+ ++parameter		Variable pre-increment
+ --parameter		Variable pre-decrement
+
+	
+	Bit Operations:
+
+ Operator		Description
+
+ ~			Bitwise negation. Negate all the bits in a number.
+ <<			Left bitwise shift. Shift all b in a number left.
+ >>			Right bitwise shift...
+ &			Bitwise AND medzi 2 číslami.
+ |			Bitwise OR...
+ ^			Bitwise XOR...
+
+
+	Logic
+
+- (( )) command podporuje rôzne porovnávacie operátory.
+
+ Operator		Description
+ 
+ <=			Less than or equal to
+ >=			Greater than or equal to
+ <			...
+ >			...
+ ==			Equal to
+ !=			Not equal to
+ &&			Logical AND
+ || 			Logical OR
+ expr1?expr2:expr3	Comparsion (ternárny operátor). Ak tvrdenie expr1
+			vyhhodnocuje nenulový stav (aritmetická pravda)
+			tak sa spraví buď expr2 alebo expr3.
+
+
+	bc - An Arbitrary Precision Calculator Language7
+
+- Videli sme ako shell môže zaobchádzať s rôznymi typmi integerovskej aritmetiky, 
+  ale čo ak chceme vykonať vysokú matematiku alebo len použiť floating number? 
+  Odpoveďou je, nemôžeme, alebo aspoň nie priamo v shelli. Na to aby sme to 
+  dokázali potrebujeme externý program. Existuje niekoľko možností pomocou, ktorých
+  to dokážeme. Pomocou Perl alebo AWK programov je jedným z možných riešení, ale to
+  je mimo tejto knihy. Ďalším zámerom je použiť špecializovaný kalulátorsky program.
+  Jeden program, ktorý sa nachádza na Linuxe je nazvaný bc. 
+
+- bc program načítava súbo napísaný v jeho vlastnom podobnom jazyku ako C a potom
+  ho vykonáva. bc script môže byť oddelený súbor, alebo môže čítať z stdio. bc jazyk
+  podporuje pár vlastností zahrňujúc premenné, slučky programátorsky-definované 
+  funkcie.
+
+$ vim foo.bc
+
+Write:
+
+2 + 2
+
+
+$ bc foo.bc 
+
+Výstupom je číslo 4.
+
+$ bc -q
+> 2+2
+> 4
+> quit
+
+$ bc < foo.bc
+> 4
+
+$ bc <<< "2+2"
+> 4
+
+		Further Reading:
+
+● The Bash Hackers Wiki has a good discussion of parameter expansion:
+	http://wiki.bash-hackers.org/syntax/pe
+
+● The Bash Reference Manual covers this, too:
+	http://www.gnu.org/software/bash/manual/bashref.html#Shell-Parameter-Expan-
+sion
+
+● The Wikipedia has a good article describing bit operations:
+	http://en.wikipedia.org/wiki/Bit_operation
+
+● and an article on ternary operations:
+	http://en.wikipedia.org/wiki/Ternary_operation
+
+● as well as a description of the formula for calculating loan payments used in our
+loan-calc script:
+
+	http://en.wikipedia.org/wiki/Amortization_calculator
+
+
+//////////////////////////////////////////////////////////////////////////////////
+				ARRAYS
+//////////////////////////////////////////////////////////////////////////////////
+
+
+- Polia v bashi sú limitované na single dimenstion. Originálny unixová shell 
+  program, sh, nepodporuje polia.
+
+$ a[1]=foo
+$ echo ${a[1]}
+> foo
+
+- Polia môžu byť tiež vytvorené pomocou commandu declare:
+
+$ declare -a a 
+
+- Použitím možnosti -a, vytvárame pole a.
+
+	
+	Priradenie hodnôt poľu: 
+
+- Hodnoty môžu byť priradené v dvoch spôsobovh. Samostatné hodnoty môžu byť 
+  priradené použitím nasledujúcej syntaxe:
+
+$ name[subscript]=value
+
+- Kde meno je meno poľa a subscript je int (alebo aritmetický výraz) > || == 0.
+- Prvý element poľa je substript [0] nie [1]!!!. Value je string alebo integer 
+  priradený k prvku poľa. 
+
+- Viacero hodnôt môže byť priradených pomocou nasledujúcej syntaxe: 
+
+$ name=(value1 value2 ....)
+
+$ days=(Sun Mon Tue Wed Thu Fri Sat)
+
+alebo
+
+$ days=([0]=Sun [1]=Mon [2]=Tue [3]=Wed [4]=Thu [5]=Fri [6]=Sat)
+
+	
+	Accesing Array Elements:
+
+$ ./hours.sh
+
+- Script pozostáva z jednej funkcie (usage) a main body zo 4mi sekciami. 
+  V prvej sekcii, môžeme overiť, že tam existuje argument command linu a to že, to
+  je dir. Ak tam nie je, môžeme zobraziť usage message a dáme exit.
+
+- Druhá sekcia inicializuje pole hours. Robí to tak, že priraďuje každému elementu
+  nulovú hodnotu. Nie je tam žiadna špeciálna požiadavka pripraviť polia na 
+  používanie, ale náš script potrebuje zaistiť, aby žiadny element nemal prázdnu
+  hodnotu. Pozri sa akým zaujímavým spôsobom je vytvorená slučka, ({0..23}), kde sme  schoný jednoducho generovať sekvenciu slov pre príkaz for.
+
+- Ďalšia sekcia získava dáta tým, že beží stat program na každom súbore v dire. 
+  Používame cut na extrakciu dvojmiestnej "hour" z výsledku. V slučke potrebujeme
+  odstrániť "leading zeros" z poľa "hours" ako sa to pokúsi spraviť shell 
+  (ultimátne zlyhá) na interpretovanie hodnôt z 00 do 09 sa používajú oktétové 
+  čísla. Ďalej inkrementujeme hodnotu elementu poľa korešpondujúcu s hodinou dňa. 
+  Finálne inkrementujeme counter na sledovanie totálnych súborov v dire. 
+
+- Posledná sekcia scriptu zobrazuje obsah poľa. Ako prvý posielame na výstup header
+  lines a potom vchádzame do slučky, ktorá produkuje 4 stĺpce pre náš výstup. 
+
+
+	Array Operations:
+
+
+Outputting the Entire Contents of an Array:
+
+- Subscript * a @ môžu byť použité na prístup ku každému elementu poľa. Ako s 
+  pozičnými parametrami, @ zápis je viac užitočný z tých dvoch: 
+
+[me@linuxbox ~]$ animals=("a dog" "a cat" "a fish")
+[me@linuxbox ~]$ for i in ${animals[*]}; do echo $i; done
+>a
+>dog
+>a
+>cat
+>a
+>fish
+[me@linuxbox ~]$ for i in ${animals[@]}; do echo $i; done
+>a
+>dog
+>a
+>cat
+>a
+>fish
+[me@linuxbox ~]$ for i in "${animals[*]}"; do echo $i; done
+>a dog a cat a fish
+[me@linuxbox ~]$ for i in "${animals[@]}"; do echo $i; done
+>a dog
+>a cat
+>a fish
+
+- Vytvárame pole animals a priraďujeme troj-dvoj-slovný string. Potom vykonávame 4
+  slučky na to aby sme si pozreli efect "word splittingu" na každý obsah poľa. 
+  Správanie zápisu ${animals[*]} a ${animals[@]} je identické kým nie sú quotované. 
+  Výsledkom * zápisu je single word, ktoré obsahuje obsah polí, kým @ zápis je 
+  výsledkom three two-word stringu, ktorý je realný obsaj poľa.
+
+	
+Determinovanie čísel elementov poľa:
+
+- Použitím parametrovej expanzie, môžeme determinovať počet elementov v poli v
+  podobnom spôsobe ako keby sme hľadali dĺžku reťazca. 
+
+[me@linuxbox ~]$ a[100]=foo
+[me@linuxbox ~]$ echo ${#a[@]} # number of array elements
+1
+[me@linuxbox ~]$ echo ${#a[100]} # length of element 100
+3
+
+
+Finding the Subscripts Used by an Array:
+
+- Bash umožňuje poliam obsahovať "gaps" v priradení subscriptov, je to niekedy
+  užitočné determinovať, ktorý element poľa existuje. To môže byť spravené pomocou
+  expanzie parametrov v nasledujúcej forme: 
+
+${!array[*]}
+
+${!array[@]}
+
+- kde array je meno premennej array, ako pri ostatných expanziách, ktoré používajú 
+  * a @ formu v " " je to najdôležitejšie: 
+
+[me@linuxbox ~]$ foo=([2]=a [4]=b [6]=c)
+[me@linuxbox ~]$ for i in "${foo[@]}"; do echo $i; done
+a
+b
+c
+[me@linuxbox ~]$ for i in "${!foo[@]}"; do echo $i; done
+2
+4
+6
+
+
+Priradenie elementov na koniec poľa: 
+
+- Poznať čísla elementov v poliach nie je žiadna výhra, použitím += operátora 
+  priradenia, môžeme automaticky pridávať hodnoty na koniec poľa. Tu, priraďujeme 
+  tri hodnoty do poľa foo a potom appendujeme 3 ďalšie.
+
+$ foo=(a b c)
+$ echo ${foo[@]}
+a b c
+
+$ foo+=(d e f)
+$ echo ${foo[@]}
+a b c d e f
+
+Sortovanie poľa: 
+
+- ./array_sort.sh
+
+
+Deleting arrays:
+
+- Na vymazávanie poľa sa používa command unset. 
+
+$ foo=(a b c d e f)
+$ echo ${foo[@]}
+a b c d e f
+
+$ unset foo
+$ echo ${foo[@]}
+
+$
+
+- Unset može byť použité na vymazávanie single array elementov: 
+
+$ foo=(a b c d e f)
+$ echo ${foo[@]}
+a b c d e f 
+$ unset 'foo[2]'
+$ echo ${foo[@]}
+a b d e f
+
+
+Asociatívne polia:
+
+- Bash verzie 4.0 a vyššie podporujú asociatívne polia. Asociatívne polia používajú
+  stringy radšej ako integery v indexovaní. Táto schopnosť umožňuje nové dôležité 
+  zámery na manažovanie dát. 
+
+declare -A colors
+colors["red"]="#ff0000"
+colors["green"]="#00ff00"
+colors["blue"]="#0000ff"
+
+$ echo ${colors["blue"]}
+
+
+
+
+
